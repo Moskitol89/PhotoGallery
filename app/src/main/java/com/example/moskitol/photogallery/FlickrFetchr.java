@@ -33,7 +33,7 @@ public class FlickrFetchr {
         }
     }
 
-    public String gerUrlString(String urlSpec) throws IOException {
+    public String getUrlString(String urlSpec) throws IOException {
         return new String(getUrlBytes(urlSpec));
     }
 }
