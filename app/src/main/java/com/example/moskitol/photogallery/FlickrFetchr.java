@@ -10,7 +10,6 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.annotation.Target;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -62,7 +61,7 @@ public class FlickrFetchr {
                 .appendQueryParameter("api_key", API_KEY)
                 .appendQueryParameter("format", "json")
                 .appendQueryParameter("nojsoncallback", "1")
-                .appendQueryParameter("exras", "url_s")
+                .appendQueryParameter("extras", "url_s")
                 .build().toString();
         String jsonString = getUrlString(url);
         Log.i(TAG, "Received JSON: " + jsonString);
