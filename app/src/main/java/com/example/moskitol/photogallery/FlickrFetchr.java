@@ -3,6 +3,9 @@ package com.example.moskitol.photogallery;
 import android.net.Uri;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,6 +16,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class FlickrFetchr {
@@ -65,33 +70,16 @@ public class FlickrFetchr {
                 .build().toString();
         String jsonString = getUrlString(url);
         Log.i(TAG, "Received JSON: " + jsonString);
-            JSONObject jsonBody = new JSONObject(jsonString);
-            parseItems(items,jsonBody);
+            parseItems(items,jsonString);
         } catch (IOException e) {
-            Log.e(TAG, "Failed to fetch items" , e);
-        }catch (JSONException e) {
-            Log.e(TAG, "Failed to parse JSON", e);
+            Log.e(TAG, "Failed to fetch items", e);
         }
         return items;
     }
 
-    public void parseItems(List<GalleryItem> items, JSONObject jsonBody)
-    throws IOException, JSONException {
-        JSONObject photosJsonObject = jsonBody.getJSONObject("photos");
-        JSONArray photoJsonArray = photosJsonObject.getJSONArray("photo");
-
-        for(int i = 0; i < photoJsonArray.length(); i++) {
-            JSONObject photoJsonObject = photoJsonArray.getJSONObject(i);
-
-            GalleryItem item = new GalleryItem();
-            item.setmId(photoJsonObject.getString("id"));
-            item.setmCaption(photoJsonObject.getString("title"));
-            if(!photoJsonObject.has("url_s")) {
-                continue;
-            }
-
-            item.setmUrl(photoJsonObject.getString("url_s"));
-            items.add(item);
-        }
+    public void parseItems(List<GalleryItem> items, String jsonString) {
+        Gson gson = new GsonBuilder().create();
+        FlickrJsonObject jsonObject = gson.fromJson(jsonString, FlickrJsonObject.class);
+        items.addAll(jsonObject.getGalletyItems());
     }
 }
