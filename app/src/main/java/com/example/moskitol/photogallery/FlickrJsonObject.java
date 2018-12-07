@@ -4,7 +4,7 @@ import java.util.List;
 
 public class FlickrJsonObject {
     private Photos photos;
-    public List<GalleryItem> getGalletyItems() {
+    public List<GalleryItem> getGalleryItems() {
         return photos.getPhoto();
     }
 }

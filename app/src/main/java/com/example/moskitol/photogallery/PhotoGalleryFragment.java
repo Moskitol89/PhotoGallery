@@ -21,6 +21,7 @@ public class PhotoGalleryFragment extends Fragment {
 
     private RecyclerView mRecyclerView;
     private List<GalleryItem> mItems = new ArrayList<>();
+    private int mPageNumber = 1;
 
     public static PhotoGalleryFragment newInstance() {
         return new PhotoGalleryFragment();
@@ -41,6 +42,17 @@ public class PhotoGalleryFragment extends Fragment {
         mRecyclerView = view.findViewById(R.id.photo_recycler_view);
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
         setupAdapter();
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if(!recyclerView.canScrollVertically(1)) {
+                    ++mPageNumber;
+                    new FetchItemsTask().execute();
+                }
+
+            }
+        });
 
         return view;
     }
@@ -96,12 +108,14 @@ public class PhotoGalleryFragment extends Fragment {
 
         @Override
         protected List<GalleryItem> doInBackground(Void... voids) {
-         return new FlickrFetchr().fetchItems();
+         return new FlickrFetchr().fetchItems(mPageNumber);
         }
 
         @Override
         protected void onPostExecute(List<GalleryItem> galleryItems) {
-            mItems = galleryItems;
+            if(mItems == null) {
+                mItems = galleryItems;
+            } else mItems.addAll(galleryItems);
             setupAdapter();
         }
     }

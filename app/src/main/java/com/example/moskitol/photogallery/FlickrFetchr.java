@@ -6,23 +6,17 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class FlickrFetchr {
-    private static final String TAG = "FlickrFetchr";
 
+    private static final String TAG = "FlickrFetchr";
     private static final String API_KEY = "c95a12c0e5a9f4fc188f33bc2f572574";
 
     public byte[] getUrlBytes(String urlSpec) throws IOException {
@@ -55,7 +49,7 @@ public class FlickrFetchr {
         return new String(getUrlBytes(urlSpec));
     }
 
-    public List<GalleryItem> fetchItems() {
+    public List<GalleryItem> fetchItems(int page) {
 
         List<GalleryItem> items = new ArrayList<>();
 
@@ -66,6 +60,7 @@ public class FlickrFetchr {
                 .appendQueryParameter("api_key", API_KEY)
                 .appendQueryParameter("format", "json")
                 .appendQueryParameter("nojsoncallback", "1")
+                .appendQueryParameter("page", Integer.toString(page))
                 .appendQueryParameter("extras", "url_s")
                 .build().toString();
         String jsonString = getUrlString(url);
@@ -80,6 +75,6 @@ public class FlickrFetchr {
     public void parseItems(List<GalleryItem> items, String jsonString) {
         Gson gson = new GsonBuilder().create();
         FlickrJsonObject jsonObject = gson.fromJson(jsonString, FlickrJsonObject.class);
-        items.addAll(jsonObject.getGalletyItems());
+        items.addAll(jsonObject.getGalleryItems());
     }
 }
