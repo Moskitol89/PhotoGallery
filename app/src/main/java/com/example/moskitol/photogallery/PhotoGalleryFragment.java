@@ -22,6 +22,7 @@ public class PhotoGalleryFragment extends Fragment {
     private RecyclerView mRecyclerView;
     private List<GalleryItem> mItems = new ArrayList<>();
     private int mPageNumber = 1;
+    private int mLastElementIndex = 0;
 
     public static PhotoGalleryFragment newInstance() {
         return new PhotoGalleryFragment();
@@ -50,7 +51,6 @@ public class PhotoGalleryFragment extends Fragment {
                     ++mPageNumber;
                     new FetchItemsTask().execute();
                 }
-
             }
         });
 
@@ -60,6 +60,7 @@ public class PhotoGalleryFragment extends Fragment {
     private void setupAdapter() {
         if (isAdded()) {
             mRecyclerView.setAdapter(new PhotoAdapter(mItems));
+            mRecyclerView.scrollToPosition(mLastElementIndex);
         }
     }
 
@@ -95,6 +96,9 @@ public class PhotoGalleryFragment extends Fragment {
         public void onBindViewHolder(@NonNull PhotoHolder photoHolder, int i) {
             GalleryItem galleryItem = mGalleryItems.get(i);
             photoHolder.bindGalleryItem(galleryItem);
+            if((i + 1) % 100 == 0) {
+                mLastElementIndex = i;
+            }
         }
 
         @Override

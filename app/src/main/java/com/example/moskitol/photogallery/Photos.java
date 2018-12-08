@@ -4,11 +4,11 @@ import java.util.List;
 
 public class Photos {
 
-    int page;
-    int pages;
-    int perpage;
-    int total;
-    List<GalleryItem> photo;
+    private int page;
+    private int pages;
+    private int perpage;
+    private int total;
+    private List<GalleryItem> photo;
 
     public Photos() {
     }
