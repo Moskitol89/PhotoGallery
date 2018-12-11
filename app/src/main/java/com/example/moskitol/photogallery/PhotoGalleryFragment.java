@@ -7,9 +7,11 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ public class PhotoGalleryFragment extends Fragment {
     private List<GalleryItem> mItems = new ArrayList<>();
     private int mPageNumber = 1;
     private int mLastElementIndex = 0;
+    private int mSpanCount = 1;
 
     public static PhotoGalleryFragment newInstance() {
         return new PhotoGalleryFragment();
@@ -39,10 +42,20 @@ public class PhotoGalleryFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_photo_gallery, container, false);
+        final View view = inflater.inflate(R.layout.fragment_photo_gallery, container, false);
         mRecyclerView = view.findViewById(R.id.photo_recycler_view);
-        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
+        final GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), mSpanCount);
+        mRecyclerView.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                       mSpanCount = view.getWidth() / 150;
+                       layoutManager.setSpanCount(mSpanCount);
+                    }
+                });
+        mRecyclerView.setLayoutManager(layoutManager);
         setupAdapter();
+
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
