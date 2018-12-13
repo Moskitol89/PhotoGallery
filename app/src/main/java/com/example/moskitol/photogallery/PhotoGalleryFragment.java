@@ -28,6 +28,7 @@ public class PhotoGalleryFragment extends Fragment {
     private int mPageNumber = 1;
     private int mLastElementIndex = 0;
     private int mSpanCount = 1;
+    private ThumbnailDownloader<PhotoHolder> mThumbnailDownloader;
 
     public static PhotoGalleryFragment newInstance() {
         return new PhotoGalleryFragment();
@@ -38,6 +39,11 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         new FetchItemsTask().execute();
+
+        mThumbnailDownloader = new ThumbnailDownloader<>();
+        mThumbnailDownloader.start();
+        mThumbnailDownloader.getLooper();
+        Log.i(TAG,"Background thread started");
     }
 
     @Nullable
@@ -70,6 +76,13 @@ public class PhotoGalleryFragment extends Fragment {
         });
 
         return view;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mThumbnailDownloader.quit();
+        Log.i(TAG, "Background thread destroyed");
     }
 
     private void setupAdapter() {
@@ -118,6 +131,7 @@ public class PhotoGalleryFragment extends Fragment {
             if((i + 1) % 100 == 0) {
                 mLastElementIndex = i;
             }
+            mThumbnailDownloader.queueThumbnail(photoHolder, galleryItem.getmUrl());
         }
 
         @Override
