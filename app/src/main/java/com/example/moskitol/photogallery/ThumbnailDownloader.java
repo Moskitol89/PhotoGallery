@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.util.Log;
+import android.util.LruCache;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,14 +22,20 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     private Handler mResponseHandler;
     private ConcurrentMap<T,String> mRequestMap = new ConcurrentHashMap<>();
     private ThumbnailDownloadListener<T> mThumbnailDownloadListener;
+    private LruCache<String, Bitmap> mLruCache;
 
     public ThumbnailDownloader(Handler responseHandler) {
         super(TAG);
         mResponseHandler = responseHandler;
+        mLruCache = new LruCache<>(12 * 1024 * 1024);
     }
 
     public void setThumbnailDownloadListener(ThumbnailDownloadListener<T> mThumbnailDownloadListener) {
         this.mThumbnailDownloadListener = mThumbnailDownloadListener;
+    }
+
+    public LruCache<String, Bitmap> getCache() {
+        return mLruCache;
     }
 
     public interface ThumbnailDownloadListener<T> {
@@ -80,10 +87,17 @@ public class ThumbnailDownloader<T> extends HandlerThread {
                 return;
             }
 
-            byte[] bitmapBytes = new FlickrFetchr().getUrlBytes(url);
-            final Bitmap bitmap = BitmapFactory
-                    .decodeByteArray(bitmapBytes, 0, bitmapBytes.length);
-            Log.i(TAG,"Bitmap created");
+            final Bitmap bitmap;
+
+            if(mLruCache.get(url) != null) {
+                bitmap = mLruCache.get(url);
+            }else {
+                byte[] bitmapBytes = new FlickrFetchr().getUrlBytes(url);
+                bitmap = BitmapFactory
+                        .decodeByteArray(bitmapBytes, 0, bitmapBytes.length);
+                Log.i(TAG,"Bitmap created");
+
+            }
 
             mResponseHandler.post(new Runnable() {
                 @Override
@@ -91,7 +105,7 @@ public class ThumbnailDownloader<T> extends HandlerThread {
                 if(mRequestMap.get(target) != url || mHasQuit) {
                     return;
                 }
-
+                mLruCache.put(url,bitmap);
                 mRequestMap.remove(target);
                 mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
                 }
