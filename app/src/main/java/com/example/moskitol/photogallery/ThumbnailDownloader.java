@@ -9,7 +9,9 @@ import android.util.Log;
 import android.util.LruCache;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
 public class ThumbnailDownloader<T> extends HandlerThread {
@@ -23,6 +25,7 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     private ConcurrentMap<T,String> mRequestMap = new ConcurrentHashMap<>();
     private ThumbnailDownloadListener<T> mThumbnailDownloadListener;
     private LruCache<String, Bitmap> mLruCache;
+    private ConcurrentLinkedQueue<GalleryItem> cache;
 
     public ThumbnailDownloader(Handler responseHandler) {
         super(TAG);
@@ -49,9 +52,9 @@ public class ThumbnailDownloader<T> extends HandlerThread {
         return super.quit();
     }
 
-    public void queueThumbnail(T target, String url) {
+    public void queueThumbnail(T target, String url, ConcurrentLinkedQueue<GalleryItem> cache) {
         Log.i(TAG,"Got a URL: " + url);
-
+        this.cache = cache;
         if(url == null) {
             mRequestMap.remove(target);
         } else {
@@ -110,6 +113,13 @@ public class ThumbnailDownloader<T> extends HandlerThread {
                 mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
                 }
             });
+
+            for(GalleryItem galleryItem: cache) {
+                String urlForCache = galleryItem.getmUrl();
+                byte[] bitmapBytes = new FlickrFetchr().getUrlBytes(urlForCache);
+                mLruCache.put(urlForCache,BitmapFactory
+                        .decodeByteArray(bitmapBytes, 0, bitmapBytes.length));
+            }
 
         }catch (IOException e) {
             Log.e(TAG, "Error downloading image", e);

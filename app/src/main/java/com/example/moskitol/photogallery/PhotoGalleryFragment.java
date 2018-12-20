@@ -20,6 +20,7 @@ import android.widget.ImageView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PhotoGalleryFragment extends Fragment {
 
@@ -70,7 +71,7 @@ public class PhotoGalleryFragment extends Fragment {
                 new ViewTreeObserver.OnGlobalLayoutListener() {
                     @Override
                     public void onGlobalLayout() {
-                       mSpanCount = view.getWidth() / 150;
+                       mSpanCount = view.getWidth() / 160;
                        layoutManager.setSpanCount(mSpanCount);
                     }
                 });
@@ -142,15 +143,29 @@ public class PhotoGalleryFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull PhotoHolder photoHolder, int i) {
+            int cursor = i;
+            ConcurrentLinkedQueue<GalleryItem> galleryItems = new ConcurrentLinkedQueue<>();
             GalleryItem galleryItem = mGalleryItems.get(i);
+            for (int k = 0; k < 10; k++) {
+                if (cursor > 1 && cursor < mGalleryItems.size()) {
+                    galleryItems.add(mGalleryItems.get(--cursor));
+                }
+            }
+            cursor = i;
+            for (int k = 0; k < 10; k++) {
+                if (cursor < mGalleryItems.size() - 2 && cursor >=0) {
+                    galleryItems.add(mGalleryItems.get(++cursor));
+                }
+            }
             Drawable placeholder = getResources().getDrawable(
                     R.drawable.bill_up_close
             );
             photoHolder.bindDrawable(placeholder);
-            if((i + 1) % 100 == 0) {
+            if ((i + 1) % 100 == 0) {
                 mLastElementIndex = i;
             }
-            mThumbnailDownloader.queueThumbnail(photoHolder, galleryItem.getmUrl());
+             mThumbnailDownloader.queueThumbnail(photoHolder, galleryItem.getmUrl(), galleryItems);
+
         }
 
         @Override
