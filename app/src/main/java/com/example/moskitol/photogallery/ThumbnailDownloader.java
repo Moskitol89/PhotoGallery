@@ -105,7 +105,7 @@ public class ThumbnailDownloader<T> extends HandlerThread {
             mResponseHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                if(mRequestMap.get(target) != url || mHasQuit) {
+                if(!(mRequestMap.get(target) == url) || mHasQuit) {
                     return;
                 }
                 mLruCache.put(url,bitmap);
@@ -114,13 +114,33 @@ public class ThumbnailDownloader<T> extends HandlerThread {
                 }
             });
 
-            for(GalleryItem galleryItem: cache) {
-                String urlForCache = galleryItem.getmUrl();
-                byte[] bitmapBytes = new FlickrFetchr().getUrlBytes(urlForCache);
-                mLruCache.put(urlForCache,BitmapFactory
-                        .decodeByteArray(bitmapBytes, 0, bitmapBytes.length));
-            }
+             Thread t =  new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        for (GalleryItem galleryItem : cache) {
+                            FlickrFetchr flickrFetchr = new FlickrFetchr();
+                            String urlForCache = galleryItem.getmUrl();
+                            if (urlForCache != null && mLruCache.get(urlForCache) == null) {
+                                byte[] bitmapBytes = new byte[0];
 
+                                bitmapBytes = flickrFetchr.getUrlBytes(urlForCache);
+
+                                mLruCache.put(urlForCache, BitmapFactory
+                                        .decodeByteArray(bitmapBytes, 0, bitmapBytes.length));
+                            }
+                        }
+                        interrupt();
+                    } catch (IOException e) {
+                        Log.e(TAG, "Error downloading image for cache", e);
+                    }
+                }
+            });
+             t.start();
+
+             if(t.isInterrupted()) {
+                 Log.e(TAG, t.getName() + " interrupted");
+             }
         }catch (IOException e) {
             Log.e(TAG, "Error downloading image", e);
         }
