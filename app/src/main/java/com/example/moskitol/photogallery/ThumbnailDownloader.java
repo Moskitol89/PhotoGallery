@@ -9,7 +9,6 @@ import android.util.Log;
 import android.util.LruCache;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
@@ -24,13 +23,14 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     private Handler mResponseHandler;
     private ConcurrentMap<T,String> mRequestMap = new ConcurrentHashMap<>();
     private ThumbnailDownloadListener<T> mThumbnailDownloadListener;
+
     private LruCache<String, Bitmap> mLruCache;
     private ConcurrentLinkedQueue<GalleryItem> cache;
 
     public ThumbnailDownloader(Handler responseHandler) {
         super(TAG);
         mResponseHandler = responseHandler;
-        mLruCache = new LruCache<>(12 * 1024 * 1024);
+        mLruCache = new LruCache<>(1024 * 1024);
     }
 
     public void setThumbnailDownloadListener(ThumbnailDownloadListener<T> mThumbnailDownloadListener) {
@@ -65,6 +65,7 @@ public class ThumbnailDownloader<T> extends HandlerThread {
 
     public void clearQueue() {
         mRequestHandler.removeMessages(MESSAGE_DOWNLOAD);
+        mLruCache.evictAll();
         mRequestMap.clear();
     }
 
@@ -138,9 +139,6 @@ public class ThumbnailDownloader<T> extends HandlerThread {
             });
              t.start();
 
-             if(t.isInterrupted()) {
-                 Log.e(TAG, t.getName() + " interrupted");
-             }
         }catch (IOException e) {
             Log.e(TAG, "Error downloading image", e);
         }

@@ -122,6 +122,9 @@ public class PhotoGalleryFragment extends Fragment {
         }
 
         public void bindDrawable(Drawable drawable) {
+            if(mThumbnailDownloader.getCache().maxSize() > 200) {
+                mThumbnailDownloader.getCache().trimToSize(30);
+            }
             mImageView.setImageDrawable(drawable);
         }
     }
@@ -161,8 +164,8 @@ public class PhotoGalleryFragment extends Fragment {
                     R.drawable.bill_up_close
             );
             photoHolder.bindDrawable(placeholder);
-            if ((i + 1) % 100 == 0) {
-                mLastElementIndex = i;
+            if ((photoHolder.getAdapterPosition() + 1) % 100 == 0) {
+                mLastElementIndex = photoHolder.getAdapterPosition();
             }
              mThumbnailDownloader.queueThumbnail(photoHolder, galleryItem.getmUrl(), galleryItems);
 
@@ -179,7 +182,14 @@ public class PhotoGalleryFragment extends Fragment {
 
         @Override
         protected List<GalleryItem> doInBackground(Void... voids) {
-         return new FlickrFetchr().fetchItems(mPageNumber);
+            String query = "boobs";
+
+            if(query == null) {
+                return new FlickrFetchr().fetchRecentPhotos(mPageNumber);
+            } else {
+                return new FlickrFetchr().searchPhotos(query,mPageNumber);
+            }
+
         }
 
         @Override
