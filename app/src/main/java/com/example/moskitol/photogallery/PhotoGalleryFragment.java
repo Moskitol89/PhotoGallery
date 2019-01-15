@@ -10,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
@@ -77,13 +78,18 @@ public class PhotoGalleryFragment extends Fragment {
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, "QueryTextSubmit: " + query);
                 QueryPreferences.setStoredQuery(getActivity(), query);
+                mItems = null;
+                mPageNumber = 1;
+                LinearLayoutManager manager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
+                manager.scrollToPositionWithOffset(0, 0);
+//                mRecyclerView.smoothScrollToPosition(0);
                 updateItems();
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                Log.d(TAG, "QueryTextChang: " + newText);
+                Log.d(TAG, "QueryTextChange: " + newText);
                 return false;
             }
         });
@@ -94,6 +100,11 @@ public class PhotoGalleryFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.menu_item_clear:
                 QueryPreferences.setStoredQuery(getActivity(), null);
+                mItems = null;
+                mPageNumber = 1;
+                LinearLayoutManager manager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
+                manager.scrollToPositionWithOffset(0, 0);
+//                mRecyclerView.smoothScrollToPosition(0);
                 updateItems();
                 return true;
             default:
