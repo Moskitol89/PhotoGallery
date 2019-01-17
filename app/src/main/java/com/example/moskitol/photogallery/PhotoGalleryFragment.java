@@ -1,5 +1,6 @@
 package com.example.moskitol.photogallery;
 
+import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -22,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,7 @@ public class PhotoGalleryFragment extends Fragment {
     private static final String TAG = "PhotoGalleryFragment";
 
     private RecyclerView mRecyclerView;
+    private ProgressBar mProgressBar;
     private List<GalleryItem> mItems = new ArrayList<>();
     private int mPageNumber = 1;
     private int mLastElementIndex = 0;
@@ -70,19 +73,21 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_photo_gallery, menu);
 
-        MenuItem searchItem = menu.findItem(R.id.menu_item_search);
+        final MenuItem searchItem = menu.findItem(R.id.menu_item_search);
         final SearchView searchView = (SearchView) searchItem.getActionView();
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+                searchView.onActionViewCollapsed();
                 Log.d(TAG, "QueryTextSubmit: " + query);
                 QueryPreferences.setStoredQuery(getActivity(), query);
                 mItems = null;
                 mPageNumber = 1;
-                LinearLayoutManager manager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
-                manager.scrollToPositionWithOffset(0, 0);
-//                mRecyclerView.smoothScrollToPosition(0);
+//                LinearLayoutManager manager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
+//                manager.scrollToPositionWithOffset(0, 0);
+                mRecyclerView.setAdapter(null);
+                mProgressBar.setVisibility(ProgressBar.VISIBLE);
                 updateItems();
                 return true;
             }
@@ -91,6 +96,14 @@ public class PhotoGalleryFragment extends Fragment {
             public boolean onQueryTextChange(String newText) {
                 Log.d(TAG, "QueryTextChange: " + newText);
                 return false;
+            }
+        });
+
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String query = QueryPreferences.getStoredQuery(getActivity());
+                searchView.setQuery(query,false);
             }
         });
     }
@@ -102,9 +115,11 @@ public class PhotoGalleryFragment extends Fragment {
                 QueryPreferences.setStoredQuery(getActivity(), null);
                 mItems = null;
                 mPageNumber = 1;
-                LinearLayoutManager manager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
-                manager.scrollToPositionWithOffset(0, 0);
+//                LinearLayoutManager manager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
+//                manager.scrollToPositionWithOffset(0, 0);
 //                mRecyclerView.smoothScrollToPosition(0);
+                mRecyclerView.setAdapter(null);
+                mProgressBar.setVisibility(ProgressBar.VISIBLE);
                 updateItems();
                 return true;
             default:
@@ -123,6 +138,7 @@ public class PhotoGalleryFragment extends Fragment {
 
         final View view = inflater.inflate(R.layout.fragment_photo_gallery, container, false);
         mRecyclerView = view.findViewById(R.id.photo_recycler_view);
+        mProgressBar = view.findViewById(R.id.progress_bar);
         final GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), mSpanCount);
         mRecyclerView.getViewTreeObserver().addOnGlobalLayoutListener(
                 new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -221,9 +237,9 @@ public class PhotoGalleryFragment extends Fragment {
                     R.drawable.bill_up_close
             );
             photoHolder.bindDrawable(placeholder);
-            if ((photoHolder.getAdapterPosition() + 1) % 100 == 0) {
+//            if ((photoHolder.getAdapterPosition() + 1) % 100 == 0) {
                 mLastElementIndex = photoHolder.getAdapterPosition();
-            }
+//            }
             mThumbnailDownloader.queueThumbnail(photoHolder, galleryItem.getmUrl(), galleryItems);
 
         }
@@ -237,9 +253,11 @@ public class PhotoGalleryFragment extends Fragment {
 
     private class FetchItemsTask extends AsyncTask<Void, Void, List<GalleryItem>> {
         private String mQuery;
+//        private ProgressDialog mDialog;
 
         public FetchItemsTask(String query) {
             mQuery = query;
+//            mDialog = new ProgressDialog(getActivity());
         }
 
         @Override
@@ -254,11 +272,19 @@ public class PhotoGalleryFragment extends Fragment {
         }
 
         @Override
+        protected void onPreExecute() {
+//            mDialog.setMessage("please wait..");
+//            mDialog.show();
+        }
+
+        @Override
         protected void onPostExecute(List<GalleryItem> galleryItems) {
             if (mItems == null) {
                 mItems = galleryItems;
             } else mItems.addAll(galleryItems);
+//            mDialog.dismiss();
             setupAdapter();
+            mProgressBar.setVisibility(ProgressBar.INVISIBLE);
         }
     }
 }
