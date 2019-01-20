@@ -121,7 +121,7 @@ public class ThumbnailDownloader<T> extends HandlerThread {
                     try {
                         for (GalleryItem galleryItem : cache) {
                             FlickrFetchr flickrFetchr = new FlickrFetchr();
-                            String urlForCache = galleryItem.getmUrl();
+                            String urlForCache = galleryItem.getUrl();
                             if (urlForCache != null && mLruCache.get(urlForCache) == null) {
                                 byte[] bitmapBytes = new byte[0];
 

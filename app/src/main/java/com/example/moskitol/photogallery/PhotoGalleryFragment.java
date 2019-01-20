@@ -1,6 +1,5 @@
 package com.example.moskitol.photogallery;
 
-import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -11,7 +10,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
@@ -51,6 +49,7 @@ public class PhotoGalleryFragment extends Fragment {
         setRetainInstance(true);
         setHasOptionsMenu(true);
         updateItems();
+
         Handler responseHandler = new Handler();
         mThumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
         mThumbnailDownloader.setThumbnailDownloadListener(
@@ -84,8 +83,6 @@ public class PhotoGalleryFragment extends Fragment {
                 QueryPreferences.setStoredQuery(getActivity(), query);
                 mItems = null;
                 mPageNumber = 1;
-//                LinearLayoutManager manager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
-//                manager.scrollToPositionWithOffset(0, 0);
                 mRecyclerView.setAdapter(null);
                 mProgressBar.setVisibility(ProgressBar.VISIBLE);
                 updateItems();
@@ -106,6 +103,13 @@ public class PhotoGalleryFragment extends Fragment {
                 searchView.setQuery(query,false);
             }
         });
+
+        MenuItem toggleItem = menu.findItem(R.id.menu_item_toggle_polling);
+        if(PoolService.isServiceAlarmOn(getActivity())) {
+            toggleItem.setTitle(R.string.stop_polling);
+        } else {
+            toggleItem.setTitle(R.string.start_polling);
+        }
     }
 
     @Override
@@ -115,12 +119,14 @@ public class PhotoGalleryFragment extends Fragment {
                 QueryPreferences.setStoredQuery(getActivity(), null);
                 mItems = null;
                 mPageNumber = 1;
-//                LinearLayoutManager manager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
-//                manager.scrollToPositionWithOffset(0, 0);
-//                mRecyclerView.smoothScrollToPosition(0);
                 mRecyclerView.setAdapter(null);
                 mProgressBar.setVisibility(ProgressBar.VISIBLE);
                 updateItems();
+                return true;
+            case R.id.menu_item_toggle_polling:
+                boolean shouldStartAlarm = !PoolService.isServiceAlarmOn(getActivity());
+                PoolService.setServiceAlarm(getActivity(), shouldStartAlarm);
+                getActivity().invalidateOptionsMenu();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -240,7 +246,7 @@ public class PhotoGalleryFragment extends Fragment {
 //            if ((photoHolder.getAdapterPosition() + 1) % 100 == 0) {
                 mLastElementIndex = photoHolder.getAdapterPosition();
 //            }
-            mThumbnailDownloader.queueThumbnail(photoHolder, galleryItem.getmUrl(), galleryItems);
+            mThumbnailDownloader.queueThumbnail(photoHolder, galleryItem.getUrl(), galleryItems);
 
         }
 
