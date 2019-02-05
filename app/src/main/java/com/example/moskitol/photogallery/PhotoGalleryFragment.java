@@ -1,20 +1,14 @@
 package com.example.moskitol.photogallery;
 
-import android.app.job.JobInfo;
-import android.app.job.JobScheduler;
-import android.content.ComponentName;
-import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -209,13 +203,16 @@ public class PhotoGalleryFragment extends VisibleFragment {
         }
     }
 
-    private class PhotoHolder extends RecyclerView.ViewHolder {
+    private class PhotoHolder extends RecyclerView.ViewHolder
+    implements View.OnClickListener{
         private ImageView mImageView;
+        private GalleryItem mGalleryItem;
 
         public PhotoHolder(@NonNull View itemView) {
             super(itemView);
 
             mImageView = itemView.findViewById(R.id.item_image_view);
+            itemView.setOnClickListener(this);
         }
 
         public void bindDrawable(Drawable drawable) {
@@ -223,6 +220,15 @@ public class PhotoGalleryFragment extends VisibleFragment {
                 mThumbnailDownloader.getCache().trimToSize(30);
             }
             mImageView.setImageDrawable(drawable);
+        }
+        public void bindGalleryItem(GalleryItem galleryItem) {
+            mGalleryItem = galleryItem;
+        }
+
+        @Override
+        public void onClick(View v) {
+            Intent i = PhotoPageActivity.newIntent(getActivity(), mGalleryItem.getPhotoPageUri());
+            startActivity(i);
         }
     }
 
@@ -246,6 +252,7 @@ public class PhotoGalleryFragment extends VisibleFragment {
             int cursor = i;
             ConcurrentLinkedQueue<GalleryItem> galleryItems = new ConcurrentLinkedQueue<>();
             GalleryItem galleryItem = mGalleryItems.get(i);
+            photoHolder.bindGalleryItem(galleryItem);
             for (int k = 0; k < 10; k++) {
                 if (cursor > 1 && cursor < mGalleryItems.size()) {
                     galleryItems.add(mGalleryItems.get(--cursor));

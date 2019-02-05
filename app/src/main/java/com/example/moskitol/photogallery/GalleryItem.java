@@ -1,5 +1,7 @@
 package com.example.moskitol.photogallery;
 
+import android.net.Uri;
+
 import com.google.gson.annotations.SerializedName;
 
 public class GalleryItem {
@@ -9,12 +11,30 @@ public class GalleryItem {
     private String mId;
     @SerializedName("url_s")
     private String mUrl;
+    @SerializedName("owner")
+    private String mOwner;
 
-    public String getmCaption() {
+    public Uri getPhotoPageUri() {
+        return Uri.parse("https://www.flickr.com/photos/")
+                .buildUpon()
+                .appendPath(mOwner)
+                .appendPath(mId)
+                .build();
+    }
+
+    public String getOwner() {
+        return mOwner;
+    }
+
+    public void setOwner(String mOwner) {
+        this.mOwner = mOwner;
+    }
+
+    public String getCaption() {
         return mCaption;
     }
 
-    public void setmCaption(String mCaption) {
+    public void setCaption(String mCaption) {
         this.mCaption = mCaption;
     }
 
