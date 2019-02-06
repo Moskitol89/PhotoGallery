@@ -1,6 +1,7 @@
 package com.example.moskitol.photogallery;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -10,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
@@ -62,9 +64,21 @@ public class PhotoPageFragment extends VisibleFragment {
                 activity.getSupportActionBar().setSubtitle(title);
             }
         });
-        mWebView.setWebViewClient(new WebViewClient());
+        final String scheme = mUri.getScheme();
+        mWebView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                if(scheme.equals("http") || scheme.equals("https")) {
+                    return false;
+                } else {
+                    startActivity(new Intent(Intent.ACTION_VIEW, mUri));
+                    return true;
+                }
+            }
+        });
         mWebView.loadUrl(mUri.toString());
         return v;
     }
+
 
 }
